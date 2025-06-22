@@ -2,6 +2,7 @@
 
 % Packages
 \usepackage{amsmath,amsfonts,amssymb}
+\usepackage{amsthm} % Add this for theorem and proof environments
 \usepackage[ruled,vlined,linesnumbered]{algorithm2e} % Use algorithm2e for better pseudocode
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -23,6 +24,13 @@
 \usetikzlibrary{fadings}
 \usetikzlibrary{decorations.pathmorphing}
 
+% Define theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
 
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -76,7 +84,7 @@ Our work is situated at the confluence of deep clustering, causal inference, mul
 Deep clustering methods have significantly advanced beyond traditional techniques. Early approaches often involved a two-stage process: an autoencoder (AE) or variational autoencoder (VAE) would first learn a low-dimensional embedding of the data \cite{autoencoder_representation_learning}, after which a standard clustering algorithm like K-means would be applied. A notable progression was Deep Embedded Clustering (DEC) \cite{deep_embedding_clustering_xie}, which introduced an end-to-end framework that jointly optimizes feature representations and refines cluster assignments. Such methods, however, are predominantly designed for uni-modal data and generally assume that the input data directly reflects the underlying cluster structure, an assumption that is violated in energy consumption data due to weather confounding.
 
 \subsection{Disentangled Representation Learning}
-Recent advances in disentangled representation learning have provided powerful tools for separating independent factors in data. The β-VAE framework \cite{beta_vae} introduced a constrained variational approach to learn disentangled representations by balancing reconstruction quality with independence constraints. FactorVAE \cite{factor_vae} extended this work by directly penalizing the total correlation between latent dimensions. A comprehensive survey by Locatello et al. \cite{disentangled_survey} highlights the theoretical challenges and practical approaches in this field. Our work builds upon these foundations but specifically addresses the causal structure inherent in energy consumption data, where weather acts as a known confounding factor.
+Recent advances in disentangled representation learning have provided powerful tools for separating independent factors in data. The beta-VAE framework \cite{beta_vae} introduced a constrained variational approach to learn disentangled representations by balancing reconstruction quality with independence constraints. FactorVAE \cite{factor_vae} extended this work by directly penalizing the total correlation between latent dimensions. A comprehensive survey by Locatello et al. \cite{disentangled_survey} highlights the theoretical challenges and practical approaches in this field. Our work builds upon these foundations but specifically addresses the causal structure inherent in energy consumption data, where weather acts as a known confounding factor.
 
 \subsection{Causal Inference and Deep Learning}
 Causal inference provides a formal framework for identifying and quantifying cause-and-effect relationships from data \cite{pearl2009causality}. Recent work has increasingly integrated causal principles into deep learning to build more robust, generalizable, and interpretable models, giving rise to the field of causal representation learning \cite{causal_representation_learning, scholkopf2021toward}. Glymour et al. \cite{causal_discovery_recent} provide a comprehensive review of causal discovery methods in machine learning, while Zhang et al. \cite{deep_causal_learning} survey deep causal learning approaches for representation, discovery, and inference.
