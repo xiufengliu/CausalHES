@@ -86,8 +86,8 @@ training:
 # Data Configuration
 data:
   # Dataset parameters
-  dataset_name: "pecan_street_style"
-  data_dir: "data/pecan_street_style"
+  dataset_name: "household_energy"
+  data_dir: "data/"
   
   # Data preprocessing
   normalization: "minmax"         # "minmax", "standard", or "none"

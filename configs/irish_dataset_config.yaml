@@ -1,0 +1,265 @@
+# Configuration for CausalHES experiments on Irish household energy dataset
+# This configuration is specifically tailored for the Irish CER Smart Metering dataset
+
+# Model Configuration
+model:
+  # Number of clusters (based on household characteristics analysis)
+  n_clusters: 5
+  
+  # Input shapes
+  load_input_shape: [24, 1]      # 24-hour load profiles, single feature
+  weather_input_shape: [24, 2]   # 24-hour weather profiles, temp + humidity
+  
+  # CSSAE (Causal Source Separation Autoencoder) Configuration
+  cssae:
+    # Encoder dimensions
+    load_embedding_dim: 64        # Load encoder output dimension
+    weather_embedding_dim: 32     # Weather encoder output dimension
+    
+    # Source separation dimensions
+    base_dim: 32                  # Base load embedding dimension
+    weather_effect_dim: 16        # Weather effect embedding dimension
+    
+    # Separation strategy: "residual" or "multi_head"
+    separation_method: "residual"
+    
+    # Encoder architecture
+    load_encoder:
+      conv_layers: 3
+      filters: [32, 64, 128]
+      kernel_size: 3
+      dilation_rates: [1, 2, 4]
+      dropout_rate: 0.1
+      
+    weather_encoder:
+      conv_layers: 2
+      filters: [16, 32]
+      kernel_size: 3
+      dropout_rate: 0.1
+    
+    # Decoder architecture
+    decoder:
+      use_transpose_conv: true
+      filters: [64, 32, 1]
+      kernel_size: 3
+      
+  # DEC (Deep Embedded Clustering) Configuration
+  dec:
+    alpha: 1.0                    # Student's t-distribution parameter
+    
+# Training Configuration
+training:
+  # CSSAE Pre-training
+  cssae_pretraining:
+    epochs: 120                   # Increased for real data complexity
+    batch_size: 32
+    learning_rate: 0.001
+    validation_split: 0.1
+    patience: 15                  # Increased patience for real data
+    
+    # Curriculum learning
+    curriculum_learning: true
+    warmup_epochs: 15
+  
+  # Joint Training (CSSAE + DEC)
+  joint_training:
+    epochs: 60                    # Increased for real data
+    batch_size: 32
+    learning_rate: 0.0005
+    tolerance: 0.001
+    update_interval: 1
+  
+  # Loss weights (adjusted for Irish dataset characteristics)
+  loss_weights:
+    reconstruction_weight: 1.0
+    causal_weight: 0.15           # Slightly increased for real data
+    clustering_weight: 0.4        # Adjusted for Irish data complexity
+    
+    # Causal loss component weights
+    mutual_information_weight: 0.4
+    adversarial_weight: 0.3
+    distance_correlation_weight: 0.3
+  
+  # Optimization
+  optimizer: "adam"
+  
+  # Regularization (increased for real data)
+  dropout_rate: 0.15
+  l2_regularization: 0.0005
+
+# Data Configuration
+data:
+  # Dataset parameters
+  dataset_name: "irish_household_energy"
+  data_dir: "data/Irish"
+  processed_data_dir: "data/processed_irish"
+  
+  # Processing parameters
+  n_households: 500
+  n_clusters: 5
+  
+  # Data preprocessing
+  normalization: "minmax"         # "minmax", "standard", or "none"
+  sequence_length: 24             # Hours in a day
+  
+  # Train/validation/test split
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+  # Data augmentation (for training robustness on real data)
+  augmentation:
+    enabled: true                 # Enable for real data
+    noise_level: 0.02            # Increased for real data robustness
+    time_shift_range: 2
+
+# Evaluation Configuration
+evaluation:
+  # Metrics to compute
+  clustering_metrics:
+    - "accuracy"
+    - "nmi"
+    - "ari"
+    - "silhouette_score"
+    - "calinski_harabasz_score"
+    - "davies_bouldin_score"
+  
+  source_separation_metrics:
+    - "independence_score"
+    - "reconstruction_quality"
+    - "separation_quality"
+    - "mutual_information"
+    - "distance_correlation"
+  
+  # Evaluation settings
+  sample_size_for_evaluation: 1000
+  bootstrap_runs: 10
+
+# Experiment Configuration
+experiment:
+  # Experiment name and output
+  name: "causal_hes_irish_dataset"
+  output_dir: "experiments/results/irish_dataset"
+  
+  # Random seed for reproducibility
+  random_seed: 42
+  
+  # Logging
+  logging:
+    level: "INFO"
+    log_to_file: true
+    log_to_console: true
+  
+  # Checkpointing
+  checkpointing:
+    enabled: true
+    save_best_only: true
+    monitor: "val_loss"
+    mode: "min"
+  
+  # Visualization
+  visualization:
+    enabled: true
+    save_plots: true
+    plot_format: "png"
+    dpi: 300
+
+# Baseline Comparison Configuration
+baselines:
+  # Which baselines to run
+  enabled_baselines:
+    - "kmeans_load"
+    - "pca_kmeans"
+    - "dec_load"
+    - "concat_dec"
+    - "multimodal_vae"
+    - "late_fusion_dec"
+  
+  # Baseline-specific parameters (adjusted for Irish dataset)
+  kmeans:
+    n_init: 20                    # Increased for real data stability
+    max_iter: 500
+  
+  pca:
+    n_components: 15              # Increased for real data complexity
+  
+  dec:
+    embedding_dim: 32
+    pretraining_epochs: 40        # Increased for real data
+    clustering_epochs: 30
+
+# Ablation Study Configuration
+ablation:
+  # Which ablation studies to run
+  enabled_studies:
+    - "no_causal_constraints"
+    - "different_separation_methods"
+    - "different_loss_weights"
+    - "different_architectures"
+  
+  # Ablation-specific parameters
+  studies:
+    no_causal_constraints:
+      causal_weight: 0.0
+    
+    different_separation_methods:
+      methods: ["residual", "multi_head"]
+    
+    different_loss_weights:
+      causal_weights: [0.05, 0.1, 0.15, 0.2, 0.3]
+      clustering_weights: [0.2, 0.3, 0.4, 0.5, 0.6]
+    
+    different_architectures:
+      base_dims: [16, 32, 48]
+      load_embedding_dims: [32, 64, 96]
+
+# Irish Dataset Specific Configuration
+irish_dataset:
+  # Data processing
+  consumption_file: "ElectricityConsumption.csv"
+  characteristics_file: "household_characteristics.csv"
+  
+  # Weather data generation (synthetic for Ireland)
+  weather:
+    start_date: "2009-07-14"
+    end_date: "2010-12-31"
+    climate_type: "temperate_oceanic"
+    
+    # Irish climate parameters
+    temperature:
+      winter_avg: 5.5             # °C
+      summer_avg: 15.0            # °C
+      daily_variation: 4.0        # °C
+      noise_std: 1.5
+      
+    humidity:
+      base_level: 80              # %
+      seasonal_variation: 10      # %
+      noise_std: 3
+  
+  # Household clustering based on characteristics
+  clustering_features:
+    - "age_group"
+    - "employment_status"
+    - "social_class"
+    - "home_type"
+    - "household_composition"
+    - "heating_adequacy"
+  
+  # Data quality filters
+  quality_filters:
+    min_days_per_household: 30    # Minimum days of data required
+    max_missing_hours_per_day: 2  # Maximum missing hours per day
+    outlier_threshold: 3.0        # Standard deviations for outlier detection
+
+# Computational Configuration
+computation:
+  # Device configuration
+  device: "auto"                  # "auto", "cpu", "cuda"
+  
+  # Parallel processing
+  n_jobs: -1                      # Use all available cores
+  
+  # Memory management
+  batch_processing: true
+  max_memory_gb: 8

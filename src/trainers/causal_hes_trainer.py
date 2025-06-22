@@ -68,8 +68,6 @@ class CausalHESTrainer:
         # Initialize CSSAE trainer
         self.cssae_trainer = CSSAETrainer(
             model=self.model.cssae,
-            reconstruction_weight=self.model.reconstruction_weight,
-            causal_weight=self.model.causal_weight,
             log_dir=str(self.log_dir / "cssae") if self.log_dir else None
         )
         
@@ -128,30 +126,38 @@ class CausalHESTrainer:
         self.logger.info("="*80)
         self.logger.info(f"Data shapes - Load: {load_data.shape}, Weather: {weather_data.shape}")
         self.logger.info(f"Training strategy - CSSAE epochs: {cssae_epochs}, Joint epochs: {joint_epochs}")
-        
+
+        # Convert numpy arrays to PyTorch tensors
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        load_tensor = torch.from_numpy(load_data).float().to(device)
+        weather_tensor = torch.from_numpy(weather_data).float().to(device)
+
         # Phase 1: CSSAE Pre-training
         if not skip_cssae_pretraining:
             self.logger.info("\n" + "="*60)
             self.logger.info("PHASE 1: CSSAE PRE-TRAINING FOR SOURCE SEPARATION")
             self.logger.info("="*60)
-            
-            cssae_history = self.cssae_trainer.fit(
-                load_data=load_data,
-                weather_data=weather_data,
-                epochs=cssae_epochs,
+
+            # Use the model's built-in training for now
+            cssae_history = self.model.fit(
+                load_data=load_tensor,
+                weather_data=weather_tensor,
+                pretrain_epochs=cssae_epochs,
+                clustering_epochs=0,  # No clustering in pretraining
                 batch_size=cssae_batch_size,
                 learning_rate=cssae_learning_rate,
+                device=device,
                 verbose=verbose
             )
-            
+
             self.training_history['cssae_pretraining'] = cssae_history
-            
+
             # Save CSSAE checkpoint
             if self.save_checkpoints and self.checkpoint_dir:
-                cssae_path = self.checkpoint_dir / "cssae_pretrained.h5"
-                self.model.cssae.model.save_weights(str(cssae_path))
+                cssae_path = self.checkpoint_dir / "cssae_pretrained.pth"
+                torch.save(self.model.cssae.state_dict(), str(cssae_path))
                 self.logger.info(f"CSSAE checkpoint saved to {cssae_path}")
-        
+
         else:
             self.logger.info("Skipping CSSAE pre-training (using existing weights)")
         
@@ -160,29 +166,30 @@ class CausalHESTrainer:
             self.logger.info("\n" + "="*60)
             self.logger.info("PHASE 2: JOINT TRAINING OF SEPARATION AND CLUSTERING")
             self.logger.info("="*60)
-            
+
             joint_history = self.model.fit(
-                load_data=load_data,
-                weather_data=weather_data,
+                load_data=load_tensor,
+                weather_data=weather_tensor,
                 pretrain_epochs=0,  # Skip pre-training since we already did it
                 clustering_epochs=joint_epochs,
                 batch_size=joint_batch_size,
                 learning_rate=joint_learning_rate,
+                device=device,
                 verbose=verbose
             )
-            
+
             self.training_history['joint_training'] = joint_history
-            
+
             # Save final model checkpoint
             if self.save_checkpoints and self.checkpoint_dir:
-                final_path = self.checkpoint_dir / "causal_hes_final.h5"
-                self.model.full_model.save_weights(str(final_path))
+                final_path = self.checkpoint_dir / "causal_hes_final.pth"
+                torch.save(self.model.state_dict(), str(final_path))
                 self.logger.info(f"Final model checkpoint saved to {final_path}")
-        
+
         else:
             self.logger.info("Skipping joint training")
             # Still need to initialize clustering for evaluation
-            self.model.initialize_clustering(load_data, weather_data)
+            self.model.initialize_clustering(load_tensor, weather_tensor)
         
         # Phase 3: Comprehensive Evaluation
         self.logger.info("\n" + "="*60)
@@ -194,19 +201,19 @@ class CausalHESTrainer:
         # Evaluate source separation quality
         if evaluate_separation:
             self.logger.info("Evaluating source separation quality...")
-            separation_results = self._evaluate_source_separation(load_data, weather_data)
+            separation_results = self._evaluate_source_separation(load_tensor, weather_tensor)
             evaluation_results['source_separation'] = separation_results
-            
+
             # Print separation report
             if verbose:
                 print_source_separation_report(separation_results)
-        
+
         # Evaluate clustering quality
         if evaluate_clustering:
             self.logger.info("Evaluating clustering quality...")
-            clustering_results = self._evaluate_clustering(load_data, weather_data, true_labels)
+            clustering_results = self._evaluate_clustering(load_tensor, weather_tensor, true_labels)
             evaluation_results['clustering'] = clustering_results
-            
+
             # Print clustering report
             if verbose:
                 self._print_clustering_report(clustering_results)
@@ -223,50 +230,51 @@ class CausalHESTrainer:
         
         return self.training_history
     
-    def _evaluate_source_separation(self, 
-                                   load_data: np.ndarray, 
-                                   weather_data: np.ndarray) -> Dict[str, float]:
+    def _evaluate_source_separation(self,
+                                   load_data: torch.Tensor,
+                                   weather_data: torch.Tensor) -> Dict[str, float]:
         """Evaluate source separation quality."""
         # Get source separation results
         separation_results = self.model.get_source_separation_results(load_data, weather_data)
-        
+
         # Calculate comprehensive metrics
         metrics = calculate_source_separation_metrics(
             original_load=separation_results['original_load'],
             base_embedding=separation_results['base_embedding'],
-            weather_embedding=separation_results['weather_embedding'],
-            reconstructed_total=separation_results['reconstructed_total'],
+            weather_embedding=separation_results['weather_effect_embedding'],
+            reconstructed_total=separation_results['total_reconstruction'],
             reconstructed_base=separation_results['base_load'],
             reconstructed_weather_effect=separation_results['weather_effect']
         )
-        
+
         return metrics
     
     def _evaluate_clustering(self,
-                           load_data: np.ndarray,
-                           weather_data: np.ndarray,
+                           load_data: torch.Tensor,
+                           weather_data: torch.Tensor,
                            true_labels: Optional[np.ndarray] = None) -> Dict[str, float]:
         """Evaluate clustering quality."""
         # Get cluster predictions
         predicted_labels = self.model.predict(load_data, weather_data)
-        
+
         # Calculate clustering metrics
         if true_labels is not None:
             metrics = calculate_clustering_metrics(true_labels, predicted_labels)
         else:
             # Calculate unsupervised metrics only
             from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
-            
+
             # Get base embeddings for unsupervised evaluation
             base_embeddings = self.model.cssae.get_base_embeddings(load_data, weather_data)
-            
+            base_embeddings_np = base_embeddings.cpu().numpy()
+
             metrics = {
-                'silhouette_score': silhouette_score(base_embeddings, predicted_labels),
-                'calinski_harabasz_score': calinski_harabasz_score(base_embeddings, predicted_labels),
-                'davies_bouldin_score': davies_bouldin_score(base_embeddings, predicted_labels),
+                'silhouette_score': silhouette_score(base_embeddings_np, predicted_labels),
+                'calinski_harabasz_score': calinski_harabasz_score(base_embeddings_np, predicted_labels),
+                'davies_bouldin_score': davies_bouldin_score(base_embeddings_np, predicted_labels),
                 'n_clusters': len(np.unique(predicted_labels))
             }
-        
+
         metrics['predicted_labels'] = predicted_labels
         return metrics
     
@@ -325,9 +333,7 @@ class CausalHESTrainer:
             'model_config': {
                 'n_clusters': self.model.n_clusters,
                 'base_dim': self.model.base_dim,
-                'reconstruction_weight': self.model.reconstruction_weight,
-                'causal_weight': self.model.causal_weight,
-                'clustering_weight': self.model.clustering_weight
+                'clustering_initialized': self.model.clustering_initialized
             },
             'training_completed': {
                 'cssae_pretraining': self.training_history['cssae_pretraining'] is not None,
@@ -341,7 +347,8 @@ class CausalHESTrainer:
             eval_metrics = self.training_history['evaluation_metrics']
             
             if 'source_separation' in eval_metrics:
-                summary['source_separation_quality'] = eval_metrics['source_separation']['overall_quality_score']
+                # Use independence score as overall quality measure
+                summary['source_separation_quality'] = eval_metrics['source_separation'].get('independence_independence_score', 0.0)
             
             if 'clustering' in eval_metrics:
                 clustering = eval_metrics['clustering']

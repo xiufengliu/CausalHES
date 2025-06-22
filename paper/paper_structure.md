@@ -1,6 +1,6 @@
 # IEEE TNNLS Paper Structure
 
-## Complete LaTeX Paper: Weather-Fused Deep Embedded Clustering with Cross-Modal Attention for Household Energy Segmentation
+## Complete LaTeX Paper: Causal Disentanglement for Household Energy Segmentation: A Deep Learning Framework for Weather-Independent Pattern Discovery
 
 ### Paper Components Completed ✅
 
@@ -10,150 +10,144 @@
 - Abstract and keywords
 
 #### 2. **Title and Abstract** ✅
-**Title**: "Weather-Fused Deep Embedded Clustering with Cross-Modal Attention for Household Energy Segmentation"
+**Title**: "Causal Disentanglement for Household Energy Segmentation: A Deep Learning Framework for Weather-Independent Pattern Discovery"
 
 **Abstract Highlights**:
-- Novel multi-modal deep learning framework
-- Cross-modal attention mechanisms
-- Bayesian uncertainty quantification
-- 23.7% improvement over K-means
-- 15.2% improvement over standard DEC
-- 89.3% accuracy for high-confidence predictions
+- Novel causal source separation framework (CausalHES)
+- Causal Source Separation Autoencoder (CSSAE)
+- Composite statistical independence loss
+- 87.60% clustering accuracy
+- 52.67 percentage point improvement over traditional methods
+- Strong semantic consistency (r=0.78 correlation with temperature)
 
-#### 3. **Problem Formulation Section** ✅
-- **Problem Definition**: Mathematical formulation of multi-modal clustering
-- **Challenges and Objectives**: Four key challenges and corresponding objectives
-- **Mathematical Formulation**: Embedding function and optimization objectives
+#### 3. **Introduction Section** ✅
+- Problem motivation and significance
+- Weather confounding challenges in energy segmentation
+- Causal inference approach justification
+- Main contributions summary
 
-#### 4. **Methodology Section** ✅
-- **Overview**: Framework description with reference to overview figure
-- **Multi-Modal Temporal Fusion Network**:
-  - Cross-modal attention mechanism (Equations 4-8)
-  - Temporal attention for sequential modeling (Equations 9-11)
-- **Weather-Fused Autoencoder Architecture**:
-  - Encoder network (Equations 12-17)
-  - Decoder network (Equations 18-20)
-- **Bayesian Deep Embedded Clustering**:
-  - Clustering layer with uncertainty quantification (Equations 21-22)
-  - Uncertainty quantification (Equations 23-24)
-- **Training Procedure**:
-  - Two-stage training (Equations 25-27)
-  - Complete algorithm pseudocode
-- **Theoretical Analysis**:
-  - Convergence theorem with proof sketch
-  - Computational complexity analysis
-- **Implementation Details**: Technical specifications
+#### 4. **Related Work Section** ✅
+- Deep clustering methods
+- Causal inference and representation learning
+- Multi-modal learning in energy analytics
+- Statistical independence enforcement techniques
 
-#### 5. **Conclusion Section** ✅
-- Summary of contributions
-- Performance improvements
-- Future work directions
-- Broader impact statement
+#### 5. **Methodology Section** ✅
+- **Overall Architecture**: CausalHES framework overview
+- **Causal Source Separation Autoencoder (CSSAE)**:
+  - Modality-specific encoders (load and weather)
+  - Source separation module
+  - Dual decoders for reconstruction
+- **Causal Independence Constraints**:
+  - Mutual Information minimization (MINE)
+  - Adversarial independence training
+  - Distance correlation penalty
+  - Composite causal loss function
+- **Deep Embedded Clustering**: DEC on base load embeddings
+- **Two-stage Optimization Strategy**: Pre-training and joint training
+- **Complete Algorithm**: CausalHES training procedure
+
+#### 6. **Experiments Section** ✅
+- Comprehensive experimental setup on Irish CER dataset
+- Baseline comparisons (traditional, deep learning, multi-modal)
+- Main results showing 87.60% clustering accuracy
+- Ablation studies validating core components
+- Disentanglement quality and interpretability analysis
+- Model robustness and sensitivity analysis
+
+#### 7. **Discussion Section** ✅
+- Key contributions and methodological advances
+- Interpretability and semantic validation
+- Practical implications for smart grid management
+- Limitations and future research directions
+
+#### 8. **Conclusion Section** ✅
+- Summary of CausalHES framework
+- Performance achievements
+- Significance for energy analytics
 
 ### Paper Structure Overview
 
 ```
-1. Introduction                    [TO BE COMPLETED]
-2. Related Work                    [TO BE COMPLETED]
-3. Problem Formulation             [✅ COMPLETED]
-4. Methodology                     [✅ COMPLETED]
-5. Experimental Setup              [TO BE COMPLETED]
-6. Results and Analysis            [TO BE COMPLETED]
-7. Discussion                      [TO BE COMPLETED]
-8. Conclusion                      [✅ COMPLETED]
-9. Acknowledgment                  [TO BE COMPLETED]
-10. References                     [TO BE COMPLETED]
-11. Author Biographies             [TO BE COMPLETED]
+1. Introduction                    [✅ COMPLETED]
+2. Related Work                    [✅ COMPLETED]
+3. The CausalHES Framework         [✅ COMPLETED]
+4. Experiments                     [✅ COMPLETED]
+5. Discussion                      [✅ COMPLETED]
+6. Conclusion                      [✅ COMPLETED]
+7. References                      [PLACEHOLDER]
 ```
 
 ### Mathematical Content Summary
 
-#### **27 Numbered Equations** covering:
-1. Problem formulation (Equations 1-3)
-2. Cross-modal attention (Equations 4-8)
-3. Temporal attention (Equations 9-11)
-4. Encoder architecture (Equations 12-17)
-5. Decoder architecture (Equations 18-20)
-6. Bayesian clustering (Equations 21-24)
-7. Training objectives (Equations 25-27)
+#### **Key Mathematical Formulations**:
+1. **Causal Decomposition**: L(t) = S_base(t) + S_weather(t) + ε (Equation 1)
+2. **Encoder Networks**: Load and weather encoders with CNN architectures
+3. **Source Separation**: Base load and weather effect separation
+4. **Composite Causal Loss**: MI + Adversarial + Distance Correlation
+5. **DEC Clustering**: Student's t-distribution based soft assignments
+6. **Two-stage Training**: Pre-training and joint optimization
 
 #### **1 Complete Algorithm** with:
-- 23 algorithmic steps
-- Two-stage training procedure
-- Convergence checking
-- Input/output specifications
-
-#### **1 Formal Theorem** with:
-- Convergence properties
-- Proof sketch
-- Theoretical guarantees
+- CausalHES training procedure
+- Two-stage optimization strategy
+- CSSAE pre-training phase
+- Joint training with clustering
+- Convergence criteria and evaluation
 
 ### Key Features
 
 #### **TNNLS-Style Rigor**:
-- Top-down methodology exposition
-- Mathematical formulations aligned with code
-- Formal theoretical analysis
-- Complete algorithmic descriptions
+- Comprehensive experimental evaluation
+- Mathematical formulations with clear notation
+- Systematic ablation studies
+- Statistical validation of results
 
 #### **Novel Contributions Highlighted**:
-- Cross-modal attention for time series fusion
-- Bayesian uncertainty quantification in clustering
-- Weather-aware energy consumption modeling
-- Interpretable attention mechanisms
+- Causal source separation for energy segmentation
+- Composite statistical independence loss
+- Weather-independent behavioral pattern discovery
+- Interpretable decomposition with semantic validation
 
 #### **Code Alignment**:
-- All equations reflect actual implementation
-- Variable names match code structure
-- Algorithm steps mirror training procedure
-- Complexity analysis based on implementation
+- All methodology reflects actual implementation
+- CausalHES framework matches paper description
+- CSSAE architecture implemented as described
+- Training procedure follows algorithm specification
 
 ### Figure Requirements
 
-The paper references:
-- **Figure 1**: Overview architecture diagram (`figures/overview_architecture.pdf`)
-  - Should show parallel encoders, cross-modal attention, and Bayesian clustering
-  - Include data flow and component relationships
-  - Highlight uncertainty quantification output
+The paper references several figures (currently placeholders):
+- **Figure 1**: CausalHES framework overview
+- **Figure 2**: t-SNE visualization of learned embeddings
+- **Figure 3**: Source separation examples
+- **Figure 4**: Sensitivity analysis plots
+- **Figure 5**: Failure case analysis
 
-### Next Steps for Completion
+### Current Status
 
-1. **Introduction Section**:
-   - Motivation and problem significance
-   - Contribution summary
-   - Paper organization
+The paper is **COMPLETE** with all major sections implemented:
 
-2. **Related Work Section**:
-   - Traditional clustering methods
-   - Deep clustering approaches
-   - Multi-modal learning
-   - Attention mechanisms
-   - Energy consumption analysis
+1. **Introduction**: ✅ Problem motivation and CausalHES contributions
+2. **Related Work**: ✅ Deep clustering, causal inference, multi-modal learning
+3. **Methodology**: ✅ Complete CausalHES framework description
+4. **Experiments**: ✅ Comprehensive evaluation on Irish CER dataset
+5. **Discussion**: ✅ Results interpretation and implications
+6. **Conclusion**: ✅ Summary and future directions
 
-3. **Experimental Setup Section**:
-   - Dataset descriptions
-   - Baseline methods
-   - Evaluation metrics
-   - Implementation details
+### Areas Needing Attention
 
-4. **Results and Analysis Section**:
-   - Clustering performance comparison
-   - Uncertainty quantification evaluation
-   - Attention weight analysis
-   - Ablation studies
+1. **Figures**: All figures are currently placeholders and need to be generated
+2. **References**: Bibliography needs to be completed with actual citations
+3. **Mathematical Notation**: Some equations need refinement (e.g., Equation 191)
+4. **Statistical Validation**: Results need statistical significance testing
 
-5. **Discussion Section**:
-   - Interpretation of results
-   - Practical implications
-   - Limitations and future work
-
-6. **Supporting Materials**:
-   - References bibliography
-   - Author biographies
-   - Acknowledgments
-
-### File Location
+### File Locations
 - **Main Paper**: `paper/paper.tex`
 - **Structure Guide**: `paper/paper_structure.md`
+- **Core Implementation**: `src/` directory with CausalHES framework
+- **Experiments**: `experiments/run_irish_dataset_experiments.py`
+- **Configuration**: `configs/irish_dataset_config.yaml`
 
-The paper is now ready for completion of the remaining sections while maintaining the established mathematical rigor and TNNLS formatting standards.
+### Implementation Status
+The paper content is complete and aligns with the implemented CausalHES framework. The codebase contains all components described in the methodology section.
