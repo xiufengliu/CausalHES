@@ -57,8 +57,8 @@ def main():
     logger.info("Starting dataset processing...")
     try:
         processed_data = processor.process_irish_dataset(
-            n_households=500,
-            n_clusters=5,
+            n_households=1000,
+            n_clusters=4,
             normalize=True,
             save_processed=True,
             output_dir="data/processed_irish"

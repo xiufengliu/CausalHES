@@ -1,10 +1,10 @@
 #!/bin/sh
 #BSUB -q hpc                            # CPU queue name (changed from gpuv100)
 #BSUB -J enhanced_baseline_experiments  # Job name
-#BSUB -n 16                             # Number of CPU cores (increased for CPU-only processing)
-#BSUB -R "rusage[mem=4GB]"              # Memory per CPU core
+#BSUB -n 24                             # Number of CPU cores (increased for 1000 households)
+#BSUB -R "rusage[mem=8GB]"              # Memory per CPU core (increased for larger dataset)
 #BSUB -R "span[hosts=1]"                # Single host (SMP job)
-#BSUB -W 6:00                           # Max wall time (6 hours for CPU-based experiments)
+#BSUB -W 8:00                           # Max wall time (8 hours for 1000 households)
 #BSUB -o enhanced_baseline_%J.out       # Output file
 #BSUB -e enhanced_baseline_%J.err       # Error file
 
@@ -29,10 +29,40 @@ echo "Memory Info:"
 free -h
 echo "======================================"
 
+# Check if required data exists
+if [ ! -d "data/Irish" ]; then
+    echo "ERROR: Irish data directory not found!"
+    echo "Please ensure data/Irish/ contains the required files."
+    exit 1
+fi
+
+if [ ! -f "data/Irish/ElectricityConsumption.csv" ]; then
+    echo "ERROR: ElectricityConsumption.csv not found!"
+    exit 1
+fi
+
 # Run the enhanced baseline experiments
+echo "Starting enhanced baseline experiments..."
 python3 experiments/run_enhanced_baseline_experiments.py
 
-echo "======================================"
-echo "Enhanced Baseline Experiments Complete"
-echo "Date: $(date)"
-echo "======================================"
+# Check if the experiment completed successfully
+if [ $? -eq 0 ]; then
+    echo "======================================"
+    echo "Enhanced Baseline Experiments Complete"
+    echo "Date: $(date)"
+    echo "======================================"
+
+    # Show results summary if available
+    if [ -f "experiments/results/enhanced_baselines/enhanced_baseline_summary.csv" ]; then
+        echo ""
+        echo "=== RESULTS SUMMARY ==="
+        head -10 experiments/results/enhanced_baselines/enhanced_baseline_summary.csv
+        echo "======================="
+    fi
+else
+    echo "======================================"
+    echo "Enhanced Baseline Experiments FAILED"
+    echo "Date: $(date)"
+    echo "======================================"
+    exit 1
+fi
