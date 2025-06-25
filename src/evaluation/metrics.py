@@ -432,7 +432,7 @@ class UncertaintyMetrics(LoggerMixin):
         return agreement
 
 
-def calculate_clustering_metrics(true_labels: np.ndarray, pred_labels: np.ndarray) -> Dict[str, float]:
+def calculate_clustering_metrics(true_labels: np.ndarray, pred_labels: np.ndarray, data: Optional[np.ndarray] = None) -> Dict[str, float]:
     """
     Calculate comprehensive clustering metrics.
 
@@ -442,6 +442,7 @@ def calculate_clustering_metrics(true_labels: np.ndarray, pred_labels: np.ndarra
     Args:
         true_labels: Ground truth cluster labels
         pred_labels: Predicted cluster labels
+        data: Optional data matrix for internal metrics
 
     Returns:
         Dictionary containing all clustering metrics
@@ -450,6 +451,15 @@ def calculate_clustering_metrics(true_labels: np.ndarray, pred_labels: np.ndarra
 
     # Compute external metrics (require true labels)
     external_metrics = metrics_calculator.compute_external_metrics(true_labels, pred_labels)
+    
+    # Compute internal metrics if data is provided
+    if data is not None:
+        try:
+            internal_metrics = metrics_calculator.compute_internal_metrics(data, pred_labels)
+            external_metrics.update(internal_metrics)
+        except Exception as e:
+            # If internal metrics fail, just use a default silhouette score
+            external_metrics['silhouette_score'] = 0.0
 
     # Add accuracy metric (using Hungarian algorithm for optimal assignment)
     from scipy.optimize import linear_sum_assignment

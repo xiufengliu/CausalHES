@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 from ..models.cssae import CSSAE
 from ..losses import CSSAELoss
 from ..utils.logging import get_logger
-from ..evaluation.metrics import calculate_source_separation_metrics
+from ..evaluation.source_separation_metrics import calculate_source_separation_metrics
 
 
 class CSSAETrainer:
@@ -129,9 +129,9 @@ class CSSAETrainer:
     def _compute_losses(self, 
                        load_data: np.ndarray,
                        weather_data: np.ndarray,
-                       outputs: Dict[str, tf.Tensor],
+                       outputs: Dict[str, torch.Tensor],
                        epoch: int,
-                       total_epochs: int) -> Dict[str, tf.Tensor]:
+                       total_epochs: int) -> Dict[str, torch.Tensor]:
         """Compute all loss components."""
         
         # Reconstruction loss
@@ -163,9 +163,9 @@ class CSSAETrainer:
         }
     
     def train_step(self,
-                   load_batch: tf.Tensor,
-                   weather_batch: tf.Tensor,
-                   optimizer: tf.keras.optimizers.Optimizer,
+                   load_batch: torch.Tensor,
+                   weather_batch: torch.Tensor,
+                   optimizer: torch.optim.Optimizer,
                    epoch: int,
                    total_epochs: int) -> Dict[str, float]:
         """
