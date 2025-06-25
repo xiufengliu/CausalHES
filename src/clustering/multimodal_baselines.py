@@ -87,9 +87,14 @@ class AttentionFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
         
         # Reshape data if needed
         if X_primary.ndim == 3:
-            X_primary = X_primary.squeeze(-1)
+            if X_primary.shape[-1] == 1:
+                X_primary = X_primary.squeeze(-1)
+            else:
+                X_primary = X_primary[:, :, 0]  # Take only first feature (energy)
         if X_secondary.ndim == 3:
-            X_secondary = X_secondary.squeeze(-1)
+            # For weather data, we might have multiple features (temp, humidity)
+            # Flatten to 2D: (n_samples, n_timesteps * n_features)
+            X_secondary = X_secondary.reshape(X_secondary.shape[0], -1)
             
         load_dim = X_primary.shape[1]
         weather_dim = X_secondary.shape[1]
@@ -213,9 +218,13 @@ class AttentionFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
             raise ValueError("Weather data required for prediction")
             
         if X_primary.ndim == 3:
-            X_primary = X_primary.squeeze(-1)
+            if X_primary.shape[-1] == 1:
+                X_primary = X_primary.squeeze(-1)
+            else:
+                X_primary = X_primary[:, :, 0]  # Take only first feature (energy)
         if X_secondary.ndim == 3:
-            X_secondary = X_secondary.squeeze(-1)
+            # For weather data, flatten to 2D: (n_samples, n_timesteps * n_features)
+            X_secondary = X_secondary.reshape(X_secondary.shape[0], -1)
             
         X_load_tensor = torch.FloatTensor(X_primary).to(self.device)
         X_weather_tensor = torch.FloatTensor(X_secondary).to(self.device)

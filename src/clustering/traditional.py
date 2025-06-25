@@ -14,7 +14,7 @@ from .base import BaseClusteringMethod
 from ..utils.logging import LoggerMixin
 
 
-class SAXKMeans(BaseClusteringMethod):
+class SAXKMeans(BaseClusteringMethod, LoggerMixin):
     """
     SAX K-means clustering implementation.
     
@@ -115,7 +115,11 @@ class SAXKMeans(BaseClusteringMethod):
     def _normalize_data(self, X: np.ndarray) -> np.ndarray:
         """Normalize time series data."""
         if X.ndim == 3:
-            X = X.squeeze(-1)  # Remove feature dimension if present
+            # Handle different feature dimensions - keep only the first feature (energy consumption)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)  # Remove feature dimension if it's size 1
+            else:
+                X = X[:, :, 0]  # Take only the first feature if multiple features
             
         normalized = np.zeros_like(X)
         for i in range(len(X)):
@@ -161,7 +165,7 @@ class SAXKMeans(BaseClusteringMethod):
         return sax_data
 
 
-class TwoStageKMeans(BaseClusteringMethod):
+class TwoStageKMeans(BaseClusteringMethod, LoggerMixin):
     """
     Two-stage K-means clustering implementation.
     
@@ -302,7 +306,11 @@ class TwoStageKMeans(BaseClusteringMethod):
             Integral features
         """
         if X.ndim == 3:
-            X = X.squeeze(-1)  # Remove feature dimension if present
+            # Handle different feature dimensions - keep only the first feature (energy consumption)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)  # Remove feature dimension if it's size 1
+            else:
+                X = X[:, :, 0]  # Take only the first feature if multiple features
             
         # Normalize by total consumption
         total_consumption = np.sum(X, axis=1, keepdims=True)
@@ -330,7 +338,11 @@ class TwoStageKMeans(BaseClusteringMethod):
             Peak timing features
         """
         if X.ndim == 3:
-            X = X.squeeze(-1)  # Remove feature dimension if present
+            # Handle different feature dimensions - keep only the first feature (energy consumption)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)  # Remove feature dimension if it's size 1
+            else:
+                X = X[:, :, 0]  # Take only the first feature if multiple features
             
         # Simple peak detection: find time of maximum value
         peak_times = np.argmax(X, axis=1)
@@ -433,7 +445,11 @@ class IntegralKMeans(BaseClusteringMethod):
             Integral sequences
         """
         if X.ndim == 3:
-            X = X.squeeze(-1)  # Remove feature dimension if present
+            # Handle different feature dimensions - keep only the first feature (energy consumption)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)  # Remove feature dimension if it's size 1
+            else:
+                X = X[:, :, 0]  # Take only the first feature if multiple features
             
         # Normalize by total power
         total_power = np.sum(X, axis=1, keepdims=True)

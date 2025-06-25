@@ -68,7 +68,10 @@ class LinearWeatherNormalization(BaseClusteringMethod, LoggerMixin):
         
         # Reshape data if needed
         if X.ndim == 3:
-            X = X.squeeze(-1)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)
+            else:
+                X = X[:, :, 0]  # Take only first feature (energy)
         if X_weather.ndim == 2:
             X_weather = X_weather.reshape(X_weather.shape[0], X_weather.shape[1], 1)
             
@@ -216,7 +219,10 @@ class NonlinearWeatherNormalization(BaseClusteringMethod, LoggerMixin):
         
         # Reshape data if needed
         if X.ndim == 3:
-            X = X.squeeze(-1)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)
+            else:
+                X = X[:, :, 0]  # Take only first feature (energy)
         if X_weather.ndim == 2:
             X_weather = X_weather.reshape(X_weather.shape[0], X_weather.shape[1], 1)
             
@@ -415,9 +421,14 @@ class CDDHDDWeatherNormalization(BaseClusteringMethod, LoggerMixin):
         
         # Reshape data if needed
         if X.ndim == 3:
-            X = X.squeeze(-1)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)
+            else:
+                X = X[:, :, 0]  # Take only first feature (energy)
         if X_weather.ndim == 3:
-            X_weather = X_weather.squeeze(-1)
+            # Weather data might have multiple features (temperature, humidity)
+            # Extract temperature (assuming it's the first feature)
+            X_weather = X_weather[:, :, 0]
             
         # Compute degree days
         cdd, hdd = self._compute_degree_days(X_weather)
@@ -481,9 +492,14 @@ class CDDHDDWeatherNormalization(BaseClusteringMethod, LoggerMixin):
     def _normalize_data(self, X: np.ndarray, X_weather: np.ndarray) -> np.ndarray:
         """Normalize load data using CDD/HDD approach."""
         if X.ndim == 3:
-            X = X.squeeze(-1)
+            if X.shape[-1] == 1:
+                X = X.squeeze(-1)
+            else:
+                X = X[:, :, 0]  # Take only first feature (energy)
         if X_weather.ndim == 3:
-            X_weather = X_weather.squeeze(-1)
+            # Weather data might have multiple features (temperature, humidity)
+            # Extract temperature (assuming it's the first feature)
+            X_weather = X_weather[:, :, 0]
             
         # Compute degree days
         cdd, hdd = self._compute_degree_days(X_weather)

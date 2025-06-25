@@ -26,6 +26,10 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
+# Set matplotlib backend for HPC environment
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+
 # CausalHES imports
 from src.data.irish_dataset_processor import IrishDatasetProcessor
 # from src.models.causal_hes_model import CausalHESModel
@@ -110,21 +114,43 @@ class EnhancedBaselineExperiments:
             Dictionary containing prepared data
         """
         self.logger.info("Preparing Irish dataset...")
-        
-        # Initialize processor
-        processor = IrishDatasetProcessor(
-            data_dir=self.config['data']['data_dir'],
-            random_state=42
-        )
-        
-        # Process dataset
-        processed_data = processor.process_irish_dataset(
-            n_households=500,
-            n_clusters=4,
-            normalize=True,
-            save_processed=True,
-            output_dir=self.config['data']['processed_data_dir']
-        )
+
+        # Check if processed data already exists
+        processed_data_file = Path(self.config['data']['processed_data_dir']) / "irish_dataset_processed.npz"
+
+        if processed_data_file.exists():
+            self.logger.info("Found existing processed data, loading...")
+            try:
+                # Load existing processed data
+                data = np.load(processed_data_file)
+                processed_data = {
+                    'load_profiles': data['load_profiles'],
+                    'weather_profiles': data['weather_profiles'],
+                    'cluster_labels': data['cluster_labels'],
+                    'metadata': data['metadata'].item()
+                }
+                self.logger.info(f"Loaded existing data: {processed_data['load_profiles'].shape[0]} profiles")
+            except Exception as e:
+                self.logger.warning(f"Failed to load existing data: {e}. Reprocessing...")
+                processed_data = None
+        else:
+            processed_data = None
+
+        if processed_data is None:
+            # Initialize processor
+            processor = IrishDatasetProcessor(
+                data_dir=self.config['data']['data_dir'],
+                random_state=42
+            )
+
+            # Process dataset
+            processed_data = processor.process_irish_dataset(
+                n_households=1000,
+                n_clusters=4,
+                normalize=True,
+                save_processed=True,
+                output_dir=self.config['data']['processed_data_dir']
+            )
         
         # Split data
         n_samples = len(processed_data['load_profiles'])
@@ -191,9 +217,11 @@ class EnhancedBaselineExperiments:
         # PCA + K-means
         try:
             self.logger.info("Running PCA + K-means...")
-            pca = PCA(n_components=50)
             X_train_flat = X_train.reshape(len(X_train), -1)
             X_test_flat = X_test.reshape(len(X_test), -1)
+            n_features = X_train_flat.shape[1]
+            n_components = min(50, n_features)  # Fix: use min to avoid exceeding feature count
+            pca = PCA(n_components=n_components)
             
             X_train_pca = pca.fit_transform(X_train_flat)
             X_test_pca = pca.transform(X_test_flat)
@@ -570,7 +598,7 @@ class EnhancedBaselineExperiments:
         # This would typically be the full implementation
         # For now, we'll use the paper results
         results = {
-            'causal_hes': {
+            'causal_hes_method': {
                 'method': 'CausalHES (Ours)',
                 'clustering_metrics': {
                     'accuracy': 0.876,
@@ -593,7 +621,7 @@ class EnhancedBaselineExperiments:
             'experiment_info': {
                 'dataset': 'Irish Household Energy Dataset',
                 'timestamp': datetime.now().isoformat(),
-                'n_households': 500,
+                'n_households': 1000,
                 'n_clusters': 4
             },
             'results': all_results
@@ -661,33 +689,41 @@ class EnhancedBaselineExperiments:
             category_display, order = category_order.get(category, (category.replace('_', ' ').title(), 99))
             
             for method_key, result in methods.items():
-                metrics = result['clustering_metrics']
-                
-                # Add statistical significance marker (simplified for demo)
-                acc_str = f"{metrics['accuracy']:.2f}"
-                nmi_str = f"{metrics['nmi']:.3f}"
-                ari_str = f"{metrics['ari']:.3f}"
-                
-                # Add significance markers for non-CausalHES methods
-                if category != 'causal_hes':
-                    acc_str += "$^\\dagger$"
-                    nmi_str += "$^\\dagger$"
-                    ari_str += "$^\\dagger$"
-                else:
-                    # Bold for CausalHES
-                    acc_str = f"\\textbf{{{acc_str}}}"
-                    nmi_str = f"\\textbf{{{nmi_str}}}"
-                    ari_str = f"\\textbf{{{ari_str}}}"
-                
-                table_data.append({
-                    'Category': category_display,
-                    'Method': result['method'],
-                    'ACC': acc_str,
-                    'NMI': nmi_str,
-                    'ARI': ari_str,
-                    'Order': order,
-                    'ACC_Numeric': metrics['accuracy']  # For sorting
-                })
+                try:
+                    if 'clustering_metrics' not in result:
+                        self.logger.warning(f"Skipping {method_key}: no clustering metrics found")
+                        continue
+                        
+                    metrics = result['clustering_metrics']
+                    
+                    # Add statistical significance marker (simplified for demo)
+                    acc_str = f"{metrics['accuracy']:.2f}"
+                    nmi_str = f"{metrics['nmi']:.3f}"
+                    ari_str = f"{metrics['ari']:.3f}"
+                    
+                    # Add significance markers for non-CausalHES methods
+                    if category != 'causal_hes':
+                        acc_str += "$^\\dagger$"
+                        nmi_str += "$^\\dagger$"
+                        ari_str += "$^\\dagger$"
+                    else:
+                        # Bold for CausalHES
+                        acc_str = f"\\textbf{{{acc_str}}}"
+                        nmi_str = f"\\textbf{{{nmi_str}}}"
+                        ari_str = f"\\textbf{{{ari_str}}}"
+                    
+                    table_data.append({
+                        'Category': category_display,
+                        'Method': result['method'],
+                        'ACC': acc_str,
+                        'NMI': nmi_str,
+                        'ARI': ari_str,
+                        'Order': order,
+                        'ACC_Numeric': metrics['accuracy']  # For sorting
+                    })
+                except Exception as e:
+                    self.logger.warning(f"Error processing {method_key}: {e}")
+                    continue
         
         # Convert to DataFrame and sort
         df = pd.DataFrame(table_data)
@@ -758,7 +794,7 @@ class EnhancedBaselineExperiments:
             all_results['causal_inference'] = self.run_causal_baselines(data_splits)
             
             # CausalHES baseline
-            all_results.update(self.run_causal_hes_baseline(data_splits))
+            all_results['causal_hes'] = self.run_causal_hes_baseline(data_splits)
             
             # Generate comprehensive report
             self.generate_comprehensive_report(all_results)
