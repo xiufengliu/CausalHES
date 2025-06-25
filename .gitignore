@@ -260,3 +260,11 @@ paper/*.toc
 
 # Keep only final paper PDF
 !paper/paper.pdf
+
+# Job output files
+*.out
+*.err
+enhanced_baseline_*.out
+enhanced_baseline_*.err
+test_baseline_*.out
+test_baseline_*.err
