@@ -243,23 +243,9 @@ data/pecan_street_style/
 data/synthetic/
 data/demo/
 examples/demo_results/
-paper/drafts/
+paper/
 *.npy
 *.npz
-
-# LaTeX auxiliary files
-paper/*.aux
-paper/*.bbl
-paper/*.blg
-paper/*.fdb_latexmk
-paper/*.fls
-paper/*.log
-paper/*.out
-paper/*.synctex.gz
-paper/*.toc
-
-# Keep only final paper PDF
-!paper/paper.pdf
 
 # Job output files
 *.out
