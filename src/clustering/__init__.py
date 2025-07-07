@@ -14,59 +14,57 @@ This module provides various clustering approaches:
 from .traditional import SAXKMeans, TwoStageKMeans, IntegralKMeans
 from .deep_clustering import DeepEmbeddedClustering, WeatherFusedDEC
 from .weather_normalization import (
-    LinearWeatherNormalization, 
+    LinearWeatherNormalization,
     NonlinearWeatherNormalization,
-    CDDHDDWeatherNormalization
+    CDDHDDWeatherNormalization,
 )
 from .vae_baselines import (
     BetaVAEClustering,
     FactorVAEClustering,
-    MultiModalVAEClustering
+    MultiModalVAEClustering,
 )
 from .multimodal_baselines import (
     AttentionFusedDEC,
     ContrastiveMVClustering,
-    GraphMultiModalClustering
+    GraphMultiModalClustering,
 )
 from .causal_baselines import (
     DoublyRobustClustering,
     InstrumentalVariableClustering,
-    DomainAdaptationClustering
+    DomainAdaptationClustering,
 )
-from .base import BaseClusteringMethod, BaseDeepClusteringMethod, BaseMultiModalClusteringMethod
+from .base import (
+    BaseClusteringMethod,
+    BaseDeepClusteringMethod,
+    BaseMultiModalClusteringMethod,
+)
 
 __all__ = [
     # Base classes
     "BaseClusteringMethod",
-    "BaseDeepClusteringMethod", 
+    "BaseDeepClusteringMethod",
     "BaseMultiModalClusteringMethod",
-    
     # Traditional methods
     "SAXKMeans",
-    "TwoStageKMeans", 
+    "TwoStageKMeans",
     "IntegralKMeans",
-    
     # Deep clustering methods
     "DeepEmbeddedClustering",
     "WeatherFusedDEC",
-    
     # Weather normalization methods
     "LinearWeatherNormalization",
     "NonlinearWeatherNormalization",
     "CDDHDDWeatherNormalization",
-    
     # VAE-based methods
     "BetaVAEClustering",
-    "FactorVAEClustering", 
+    "FactorVAEClustering",
     "MultiModalVAEClustering",
-    
     # Multi-modal clustering methods
     "AttentionFusedDEC",
     "ContrastiveMVClustering",
     "GraphMultiModalClustering",
-    
     # Causal inference methods
     "DoublyRobustClustering",
     "InstrumentalVariableClustering",
-    "DomainAdaptationClustering"
+    "DomainAdaptationClustering",
 ]

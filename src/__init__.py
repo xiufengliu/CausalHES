@@ -9,16 +9,15 @@ networks and advanced attention mechanisms.
 __version__ = "1.0.0"
 __author__ = "Research Team"
 
-from . import models
-from . import clustering  
-from . import data
+from . import clustering
 from . import evaluation
 from . import utils
+from . import data
 
-__all__ = [
-    "models",
-    "clustering", 
-    "data",
-    "evaluation",
-    "utils"
-]
+# Note: models module requires PyTorch
+try:
+    from . import models
+
+    __all__ = ["clustering", "evaluation", "utils", "data", "models"]
+except ImportError:
+    __all__ = ["clustering", "evaluation", "utils", "data"]

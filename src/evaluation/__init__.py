@@ -17,6 +17,6 @@ __all__ = [
     "ClusteringMetrics",
     "UncertaintyMetrics",
     "ClusteringEvaluator",
-    "StatisticalTester", 
-    "ClusterVisualizer"
+    "StatisticalTester",
+    "ClusterVisualizer",
 ]

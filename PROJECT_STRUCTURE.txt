@@ -1,0 +1,117 @@
+CausalHES/
+├── CHANGELOG.md                    # Version history and changes
+├── CONTRIBUTING.md                 # Contribution guidelines
+├── LICENSE                         # MIT license
+├── METHODOLOGY_ALIGNMENT_SUMMARY.md # Implementation alignment with paper
+├── README.md                       # Main project documentation
+├── requirements.txt                # Python dependencies
+├── run_tests.py                   # Test runner script
+├── setup.py                       # Package installation script
+├── generate_pecan_street_style.py # Pecan Street data generator
+├── generate_realistic_timeseries.py # Realistic timeseries generator
+├── process_irish_dataset.py       # Irish dataset processing script
+├── train_causal_hes_irish.py      # Training script for Irish data
+│
+├── configs/                        # Configuration files
+│   ├── causal_hes_config.yaml     # Main CausalHES configuration
+│   └── irish_dataset_config.yaml  # Irish dataset specific config
+│
+├── docs/                          # Documentation
+│   ├── api.md                     # API reference
+│   └── installation.md           # Installation guide
+│
+├── examples/                      # Example scripts and demos
+│   ├── causal_hes_demo.py        # Basic demonstration
+│   └── complete_causal_hes_demo.py # Complete methodology demo
+│
+├── experiments/                   # Experimental scripts
+│   └── run_enhanced_baseline_experiments.py # Baseline comparisons
+│
+├── paper/                         # Research paper and figures
+│   ├── paper.tex                 # LaTeX source
+│   ├── paper.pdf                 # Compiled paper
+│   ├── references.bib            # Bibliography
+│   ├── framework_overview.tex    # Framework diagram
+│   ├── plot_figure.py           # Figure generation script
+│   └── images/                   # Paper figures
+│       ├── framework_overview.pdf
+│       ├── sensitivity_analysis.pdf
+│       ├── tsne_visualization_left.pdf
+│       ├── source_separation_metrics.pdf
+│       ├── attention_gate_visualization.pdf
+│       ├── sensitivity_causal_weight.pdf
+│       ├── sensitivity_clustering_weight.pdf
+│       └── failure_case_analysis.pdf
+│
+├── scripts/                       # Utility scripts
+│   ├── setup_environment.sh      # Environment setup script
+│   ├── run_experiments.sh        # Experiment runner
+│   └── clean_project.sh          # Project cleanup script
+│
+├── src/                          # Main source code
+│   ├── __init__.py               # Package initialization
+│   ├── cli.py                    # Command-line interface
+│   ├── losses.py                 # Legacy loss functions
+│   │
+│   ├── clustering/               # Clustering algorithms
+│   │   ├── __init__.py
+│   │   ├── base.py              # Base clustering classes
+│   │   ├── causal_baselines.py  # Causal inference baselines
+│   │   ├── deep_clustering.py   # Deep clustering methods
+│   │   ├── multimodal_baselines.py # Multi-modal clustering
+│   │   ├── traditional.py       # Traditional clustering methods
+│   │   ├── vae_baselines.py     # VAE-based clustering
+│   │   └── weather_normalization.py # Weather normalization methods
+│   │
+│   ├── data/                    # Data processing modules
+│   │   ├── __init__.py
+│   │   └── irish_dataset_processor.py # Irish dataset processor
+│   │
+│   ├── evaluation/              # Evaluation and metrics
+│   │   ├── __init__.py
+│   │   ├── evaluator.py         # Main evaluation framework
+│   │   ├── metrics.py           # Clustering metrics
+│   │   ├── source_separation_metrics.py # Source separation metrics
+│   │   ├── statistical_tests.py # Statistical testing
+│   │   └── visualization.py     # Visualization utilities
+│   │
+│   ├── losses/                  # Loss functions
+│   │   ├── __init__.py
+│   │   ├── composite_causal_loss.py # Multi-component causal loss
+│   │   └── cssae_loss.py        # Complete CSSAE loss function
+│   │
+│   ├── models/                  # Neural network models
+│   │   ├── __init__.py
+│   │   ├── base.py              # Base autoencoder
+│   │   ├── causal_hes_model.py  # Main CausalHES model
+│   │   └── clustering_layers.py # DEC clustering layer
+│   │
+│   ├── trainers/                # Training algorithms
+│   │   ├── causal_hes_complete_trainer.py # Complete two-stage trainer
+│   │   ├── causal_hes_trainer.py # Legacy trainer
+│   │   └── cssae_trainer.py     # CSSAE trainer
+│   │
+│   └── utils/                   # Utility functions
+│       ├── __init__.py
+│       ├── config.py            # Configuration management
+│       ├── constants.py         # Project constants
+│       ├── helpers.py           # Helper functions
+│       ├── logging.py           # Logging utilities
+│       └── preprocessing.py     # Data preprocessing
+│
+└── tests/                       # Unit tests
+    ├── __init__.py
+    ├── test_data_generation.py  # Data generation tests
+    └── test_models.py           # Model tests
+
+Key Features:
+- 🧠 Causal Source Separation Autoencoder (CSSAE)
+- 🔬 Composite Independence Loss (MINE + Adversarial + Distance Correlation)
+- 🏠 Weather-Independent Clustering with Deep Embedded Clustering (DEC)
+- 🌡️ Semantic Validation of Weather Effects
+- 📈 Two-Stage Training Strategy
+- 🎯 15+ Baseline Method Implementations
+- 📊 Comprehensive Evaluation Framework
+- 🔧 Production-Ready Codebase
+
+Total Files: ~50+ Python files, comprehensive documentation, and research paper.

@@ -30,12 +30,14 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
     Reference: Xie et al. "Unsupervised Deep Embedding for Clustering Analysis" (2016)
     """
 
-    def __init__(self,
-                 n_clusters: int,
-                 embedding_dim: int = 10,
-                 alpha: float = 1.0,
-                 device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
-                 random_state: Optional[int] = None):
+    def __init__(
+        self,
+        n_clusters: int,
+        embedding_dim: int = 10,
+        alpha: float = 1.0,
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        random_state: Optional[int] = None,
+    ):
         """
         Initialize DEC model.
 
@@ -67,15 +69,21 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
         self.clustering_layer = ClusteringLayer(
             n_clusters=self.n_clusters,
             embedding_dim=self.embedding_dim,
-            alpha=self.alpha
+            alpha=self.alpha,
         ).to(self.device)
 
         self.logger.info("DEC initialized with pre-trained autoencoder")
 
-    def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None,
-            epochs: int = 30, batch_size: int = 32,
-            tolerance: float = 0.001, update_interval: int = 1,
-            verbose: int = 1) -> 'DeepEmbeddedClustering':
+    def fit(
+        self,
+        X: np.ndarray,
+        y: Optional[np.ndarray] = None,
+        epochs: int = 30,
+        batch_size: int = 32,
+        tolerance: float = 0.001,
+        update_interval: int = 1,
+        verbose: int = 1,
+    ) -> "DeepEmbeddedClustering":
         """
         Fit the DEC model.
 
@@ -105,7 +113,9 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
             embeddings = self.encoder_(X_tensor).cpu().numpy()
 
         # Initialize cluster centroids with K-means
-        kmeans = KMeans(n_clusters=self.n_clusters, random_state=self.random_state, n_init='auto')
+        kmeans = KMeans(
+            n_clusters=self.n_clusters, random_state=self.random_state, n_init="auto"
+        )
         kmeans.fit(embeddings)
         initial_centroids = torch.FloatTensor(kmeans.cluster_centers_).to(self.device)
 
@@ -115,7 +125,7 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
         # Setup optimizer
         self.optimizer = optim.Adam(
             list(self.encoder_.parameters()) + list(self.clustering_layer.parameters()),
-            lr=0.001
+            lr=0.001,
         )
 
         # Training loop
@@ -144,7 +154,9 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
                 y_pred_last = y_pred
 
                 if verbose:
-                    self.logger.info(f"Epoch {epoch+1}/{epochs} - Labels changed: {delta_label:.4f}")
+                    self.logger.info(
+                        f"Epoch {epoch+1}/{epochs} - Labels changed: {delta_label:.4f}"
+                    )
 
                 if epoch > 0 and delta_label < tolerance:
                     self.logger.info(f"Converged at epoch {epoch+1}")
@@ -170,7 +182,7 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
                 q = self.clustering_layer(embeddings)
 
                 # KL divergence loss
-                loss = F.kl_div(torch.log(q + 1e-8), batch_p, reduction='batchmean')
+                loss = F.kl_div(torch.log(q + 1e-8), batch_p, reduction="batchmean")
 
                 # Backward pass
                 loss.backward()
@@ -246,7 +258,7 @@ class DeepEmbeddedClustering(BaseDeepClusteringMethod, LoggerMixin):
         Returns:
             Target distribution P
         """
-        weight = q ** 2 / np.sum(q, axis=0)
+        weight = q**2 / np.sum(q, axis=0)
         return (weight.T / np.sum(weight, axis=1)).T
 
 
@@ -258,12 +270,14 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
     multi-modal fusion and attention mechanisms with PyTorch.
     """
 
-    def __init__(self,
-                 n_clusters: int,
-                 embedding_dim: int = 10,
-                 alpha: float = 1.0,
-                 device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
-                 random_state: Optional[int] = None):
+    def __init__(
+        self,
+        n_clusters: int,
+        embedding_dim: int = 10,
+        alpha: float = 1.0,
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        random_state: Optional[int] = None,
+    ):
         """
         Initialize Weather-fused DEC model.
 
@@ -295,15 +309,21 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
         self.clustering_layer = ClusteringLayer(
             n_clusters=self.n_clusters,
             embedding_dim=self.embedding_dim,
-            alpha=self.alpha
+            alpha=self.alpha,
         ).to(self.device)
 
         self.logger.info("Weather-fused DEC initialized with pre-trained autoencoder")
 
-    def fit_predict(self, X_primary: np.ndarray, X_secondary: np.ndarray,
-                   epochs: int = 30, batch_size: int = 32,
-                   tolerance: float = 0.001, update_interval: int = 1,
-                   verbose: int = 1) -> np.ndarray:
+    def fit_predict(
+        self,
+        X_primary: np.ndarray,
+        X_secondary: np.ndarray,
+        epochs: int = 30,
+        batch_size: int = 32,
+        tolerance: float = 0.001,
+        update_interval: int = 1,
+        verbose: int = 1,
+    ) -> np.ndarray:
         """
         Fit the Weather-fused DEC model and return cluster labels.
 
@@ -320,7 +340,9 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
             Cluster labels
         """
         if self.encoder_ is None:
-            raise ValueError("Weather-fused DEC must be initialized with an autoencoder first")
+            raise ValueError(
+                "Weather-fused DEC must be initialized with an autoencoder first"
+            )
 
         self.logger.info(f"Training Weather-fused DEC for {epochs} epochs...")
 
@@ -331,10 +353,14 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
         # Generate initial embeddings
         self.encoder_.eval()
         with torch.no_grad():
-            embeddings = self.encoder_([X_primary_tensor, X_secondary_tensor]).cpu().numpy()
+            embeddings = (
+                self.encoder_([X_primary_tensor, X_secondary_tensor]).cpu().numpy()
+            )
 
         # Initialize cluster centroids with K-means
-        kmeans = KMeans(n_clusters=self.n_clusters, random_state=self.random_state, n_init='auto')
+        kmeans = KMeans(
+            n_clusters=self.n_clusters, random_state=self.random_state, n_init="auto"
+        )
         kmeans.fit(embeddings)
         initial_centroids = torch.FloatTensor(kmeans.cluster_centers_).to(self.device)
 
@@ -344,7 +370,7 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
         # Setup optimizer
         self.optimizer = optim.Adam(
             list(self.encoder_.parameters()) + list(self.clustering_layer.parameters()),
-            lr=0.001
+            lr=0.001,
         )
 
         # Training loop (simplified for multi-modal)
@@ -363,7 +389,7 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
                 p_tensor = torch.FloatTensor(p_np).to(self.device)
 
             # KL divergence loss
-            loss = F.kl_div(torch.log(q + 1e-8), p_tensor, reduction='batchmean')
+            loss = F.kl_div(torch.log(q + 1e-8), p_tensor, reduction="batchmean")
 
             # Backward pass
             self.optimizer.zero_grad()
@@ -400,5 +426,5 @@ class WeatherFusedDEC(BaseMultiModalClusteringMethod, LoggerMixin):
         Returns:
             Target distribution P
         """
-        weight = q ** 2 / np.sum(q, axis=0)
+        weight = q**2 / np.sum(q, axis=0)
         return (weight.T / np.sum(weight, axis=1)).T

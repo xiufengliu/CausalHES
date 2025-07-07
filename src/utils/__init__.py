@@ -21,5 +21,5 @@ __all__ = [
     "set_random_seed",
     "ensure_dir",
     "DEFAULT_PARAMS",
-    "MODEL_CONFIGS"
+    "MODEL_CONFIGS",
 ]

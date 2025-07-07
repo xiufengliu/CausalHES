@@ -1,15 +1,13 @@
 """
 Custom loss functions for CausalHES framework.
 
-This module implements various loss functions for enforcing causal independence
-and source separation quality in the CSSAE model.
+This module provides backward compatibility and imports the main loss functions.
+For the complete implementation, see src/losses/ directory.
 
 Key Loss Functions:
 1. Reconstruction Loss: Standard MSE for autoencoder training
-2. Mutual Information Loss: Minimizes I(Z_base; Z_weather) for independence
-3. Adversarial Loss: Uses discriminator to enforce independence
-4. Distance Correlation Loss: Minimizes distance correlation between embeddings
-5. Composite Causal Loss: Combines multiple independence constraints
+2. CSSAELoss: Complete loss function combining reconstruction, causal, and clustering losses
+3. CompositeCausalLoss: Multi-component causal independence loss
 """
 
 import numpy as np
@@ -20,6 +18,13 @@ from typing import Tuple, Optional, Dict, Callable
 import logging
 
 from .utils.logging import get_logger
+
+# Import main loss functions for backward compatibility
+try:
+    from .losses import CSSAELoss, CompositeCausalLoss
+except ImportError:
+    # Fallback if losses module structure changes
+    pass
 
 
 class ReconstructionLoss(nn.Module):
@@ -57,9 +62,7 @@ class MutualInformationLoss(nn.Module):
     Reference: Belghazi et al. "Mutual Information Neural Estimation" (2018)
     """
 
-    def __init__(self,
-                 input_dim: int,
-                 hidden_dim: int = 64):
+    def __init__(self, input_dim: int, hidden_dim: int = 64):
         super().__init__()
         self.hidden_dim = hidden_dim
         self.input_dim = input_dim
@@ -76,7 +79,7 @@ class MutualInformationLoss(nn.Module):
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.ReLU(),
-            nn.Linear(self.hidden_dim, 1)
+            nn.Linear(self.hidden_dim, 1),
         )
 
     def forward(self, base_embedding, weather_embedding):
@@ -122,9 +125,7 @@ class AdversarialIndependenceLoss(nn.Module):
     similar to Gradient Reversal Layer (GRL) approach.
     """
 
-    def __init__(self,
-                 input_dim: int,
-                 hidden_dim: int = 64):
+    def __init__(self, input_dim: int, hidden_dim: int = 64):
         super().__init__()
         self.hidden_dim = hidden_dim
         self.input_dim = input_dim
@@ -146,7 +147,7 @@ class AdversarialIndependenceLoss(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(self.hidden_dim // 2, 1),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, base_embedding, weather_embedding):
@@ -217,7 +218,9 @@ class DistanceCorrelationLoss(nn.Module):
         y_expanded = x.unsqueeze(0)  # [1, batch_size, dim]
 
         # Compute pairwise distances
-        distances = torch.norm(x_expanded - y_expanded, dim=-1)  # [batch_size, batch_size]
+        distances = torch.norm(
+            x_expanded - y_expanded, dim=-1
+        )  # [batch_size, batch_size]
         return distances
 
     def _centered_distance_matrix(self, distances):
@@ -280,12 +283,14 @@ class CompositeCausalLoss(nn.Module):
     Each component enforces independence from a different perspective.
     """
 
-    def __init__(self,
-                 base_dim: int,
-                 weather_dim: int,
-                 mi_weight: float = 1.0,
-                 adversarial_weight: float = 0.5,
-                 dcor_weight: float = 0.3):
+    def __init__(
+        self,
+        base_dim: int,
+        weather_dim: int,
+        mi_weight: float = 1.0,
+        adversarial_weight: float = 0.5,
+        dcor_weight: float = 0.3,
+    ):
         super().__init__()
 
         self.mi_weight = mi_weight
@@ -294,12 +299,16 @@ class CompositeCausalLoss(nn.Module):
 
         # Initialize component losses
         self.mi_loss = MutualInformationLoss(input_dim=base_dim + weather_dim)
-        self.adversarial_loss = AdversarialIndependenceLoss(input_dim=base_dim + weather_dim)
+        self.adversarial_loss = AdversarialIndependenceLoss(
+            input_dim=base_dim + weather_dim
+        )
         self.dcor_loss = DistanceCorrelationLoss()
 
         self.logger = get_logger(self.__class__.__name__)
-        self.logger.info(f"Composite causal loss initialized with weights: "
-                        f"MI={mi_weight}, Adversarial={adversarial_weight}, dCor={dcor_weight}")
+        self.logger.info(
+            f"Composite causal loss initialized with weights: "
+            f"MI={mi_weight}, Adversarial={adversarial_weight}, dCor={dcor_weight}"
+        )
 
     def forward(self, base_embedding, weather_embedding):
         """
@@ -319,9 +328,9 @@ class CompositeCausalLoss(nn.Module):
 
         # Weighted combination
         total_loss = (
-            self.mi_weight * mi_loss +
-            self.adversarial_weight * adversarial_loss +
-            self.dcor_weight * dcor_loss
+            self.mi_weight * mi_loss
+            + self.adversarial_weight * adversarial_loss
+            + self.dcor_weight * dcor_loss
         )
 
         return total_loss
@@ -332,14 +341,16 @@ class CSSAELoss(nn.Module):
     Complete loss function for CSSAE training.
     """
 
-    def __init__(self,
-                 base_dim: int,
-                 weather_dim: int,
-                 reconstruction_weight: float = 1.0,
-                 causal_weight: float = 0.1,
-                 mi_weight: float = 1.0,
-                 adversarial_weight: float = 0.5,
-                 dcor_weight: float = 0.3):
+    def __init__(
+        self,
+        base_dim: int,
+        weather_dim: int,
+        reconstruction_weight: float = 1.0,
+        causal_weight: float = 0.1,
+        mi_weight: float = 1.0,
+        adversarial_weight: float = 0.5,
+        dcor_weight: float = 0.3,
+    ):
         super().__init__()
 
         self.reconstruction_weight = reconstruction_weight
@@ -351,7 +362,7 @@ class CSSAELoss(nn.Module):
             weather_dim=weather_dim,
             mi_weight=mi_weight,
             adversarial_weight=adversarial_weight,
-            dcor_weight=dcor_weight
+            dcor_weight=dcor_weight,
         )
 
     def forward(self, y_true, outputs):
@@ -366,21 +377,17 @@ class CSSAELoss(nn.Module):
             Total loss
         """
         # Reconstruction loss
-        recon_loss = self.reconstruction_loss(
-            y_true,
-            outputs['total_reconstruction']
-        )
+        recon_loss = self.reconstruction_loss(y_true, outputs["total_reconstruction"])
 
         # Causal independence loss
         causal_loss_value = self.causal_loss(
-            outputs['base_embedding'],
-            outputs['weather_embedding']
+            outputs["base_embedding"], outputs["weather_embedding"]
         )
 
         # Total loss
         total_loss = (
-            self.reconstruction_weight * recon_loss +
-            self.causal_weight * causal_loss_value
+            self.reconstruction_weight * recon_loss
+            + self.causal_weight * causal_loss_value
         )
 
         return total_loss
